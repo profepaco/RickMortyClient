@@ -1,15 +1,17 @@
 package edu.itsco.rickmortyclient.ui.home
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -31,7 +33,7 @@ fun PersonajesScreen(){
     //Es el equivalente a RecyclerView vertical
     LazyColumn {
         items(items = state) { character: Character ->
-            PersonajeTarjeta(character = character)
+            CardPersonaje(character = character)
         }
     }
 }
@@ -39,7 +41,7 @@ fun PersonajesScreen(){
 @Composable
 fun PersonajeTarjeta(character: Character, modifier:Modifier = Modifier){
 
-    val imagePainter = rememberAsyncImagePainter(model = character.image)
+    //val imagePainter = rememberAsyncImagePainter(model = character.image)
 
     Card(
         shape = MaterialTheme.shapes.medium,
@@ -47,8 +49,8 @@ fun PersonajeTarjeta(character: Character, modifier:Modifier = Modifier){
     ){
         Box{
             AsyncImage(
-                //model = character.image,
-                model = imagePainter,
+                //model = imagePainter
+                model = character.image,
                 contentDescription = "imagen RickMorty",
                 modifier = modifier
                     .fillMaxWidth()
@@ -56,20 +58,109 @@ fun PersonajeTarjeta(character: Character, modifier:Modifier = Modifier){
                 contentScale = ContentScale.FillBounds
             )
             Surface(
-                color = MaterialTheme.colors.onSurface.copy(alpha = .1f),
+                color = MaterialTheme.colors.onSurface.copy(alpha = .2f),
                 modifier = modifier.align(Alignment.BottomCenter)
             ){
-                Column(
-                    modifier = modifier
-                        .fillMaxWidth()
-                        .padding(8.dp)
+                Row {
+                    Column(
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
 
-                ) {
-                    Text(character.name)
-                    Text("${character.status} - ${character.species}")
+                    ) {
+                        Text(character.name)
+                        Text("${character.status} - ${character.species}")
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun CardPersonaje(
+    character: Character,
+    modifier: Modifier = Modifier
+){
+
+    var expanded by remember { mutableStateOf(false) }
+
+    Card(
+        shape = MaterialTheme.shapes.medium,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow
+                )
+            )
+    ){
+        Column() {
+            Row(modifier.background(MaterialTheme.colors.secondary)) {
+                Surface(
+                    modifier.size(120.dp),
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.2f)
+                ) {
+                    AsyncImage(
+                        model = character.image,
+                        contentDescription = "IMG RickMorty",
+                        contentScale = ContentScale.FillBounds
+                    )
+                }
+                Column(
+                    modifier
+                        .padding(16.dp)
+                        .align(Alignment.CenterVertically)
+                        .weight(1f)
+                ) {
+                    Text(
+                        text = character.name,
+                        style = MaterialTheme.typography.h6
+                    )
+                    Text(
+                        text = "${character.status} - ${character.species}",
+                        style = MaterialTheme.typography.subtitle1
+                    )
+                }
+                IconButton(
+                    onClick = { expanded = !expanded },
+                    modifier.align(Alignment.CenterVertically)
+                ) {
+                    Icon(
+                        imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                        contentDescription = "Icono"
+                    )
+                }
+            }
+            if(expanded){
+                Row(modifier.padding(16.dp)) {
+                    Column() {
+                        Text("Ultima aparición conocida:",
+                            style = MaterialTheme.typography.body1
+                        )
+                        Text(character.location.name,
+                            style = MaterialTheme.typography.body2
+                        )
+                        MasInformacionCard(item = "Visto por primera vez",
+                            detalle = character.origin.name)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MasInformacionCard(item: String, detalle: String){
+    Column() {
+        Text(item,
+            style = MaterialTheme.typography.body1
+        )
+        Text(detalle,
+            style = MaterialTheme.typography.body2
+        )
     }
 }
 
@@ -90,7 +181,7 @@ fun TarjetaPersonajePreview(){
         type = "",
         url = ""
     )
-    PersonajeTarjeta(
+    CardPersonaje(
         character = personaje
     )
 }
